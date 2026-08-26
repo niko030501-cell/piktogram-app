@@ -16,6 +16,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useData } from '../../state/DataProvider'
 import { useSettings } from '../../state/SettingsProvider'
 import { CategoryTile } from './CategoryTile'
+import categoryTileStyles from './CategoryTile.module.css'
 import { SnippenBar } from './SnippenBar'
 import { EditCategorySheet } from '../edit/EditCategorySheet'
 import type { NavigerTil } from '../../app/viewState'
@@ -154,6 +155,7 @@ function SorterbarKategoriFlise({
       kategori={kategori}
       onClick={onTryk}
       style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={redigerer ? categoryTileStyles.redigerbar : undefined}
       {...(redigerer ? { ...attributes, ...listeners } : {})}
     />
   )

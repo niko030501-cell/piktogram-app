@@ -15,6 +15,7 @@ import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sort
 import { CSS } from '@dnd-kit/utilities'
 import { useData } from '../../state/DataProvider'
 import { PictogramCard } from '../category/PictogramCard'
+import pictogramCardStyles from '../category/PictogramCard.module.css'
 import { SNIPPEN_MAKS } from '../../db/schema'
 import type { Piktogram } from '../../db/schema'
 import knap from '../../styles/buttons.module.css'
@@ -124,6 +125,7 @@ function SorterbartFavoritKort({
       visValgMarkering
       onClick={onFjern}
       style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={pictogramCardStyles.redigerbar}
       {...attributes}
       {...listeners}
     />

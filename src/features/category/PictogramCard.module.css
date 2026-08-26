@@ -18,6 +18,14 @@
   border-color: var(--color-accent);
 }
 
+.redigerbar {
+  /* Uden denne prøver telefonen at scrolle siden, mens man trækker et
+     kort - det får det til at "hoppe" op og ned i stedet for bare at
+     følge fingeren. touch-action: none overlader al fingerbevægelse på
+     kortet til trække-funktionen (dnd-kit) i stedet for til browseren. */
+  touch-action: none;
+}
+
 .billedRamme {
   width: 100%;
   aspect-ratio: 1 / 1;
