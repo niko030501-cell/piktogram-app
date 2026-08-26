@@ -25,6 +25,14 @@ interface SyncContextVaerdi {
   harSkyForbindelse: boolean
   status: SyncStatus
   sidstSynkroniseret: number | null
+  /**
+   * Sandt når enheden enten ikke bruger sky-synkronisering, eller har
+   * afsluttet sit allerførste forsøg på at hente ned fra skyen. Bruges af
+   * App.tsx til at vente med at vise noget, på en helt ny enhed - ellers
+   * ville de 6 standardkategorier nå at blive sået lokalt, inden de rigtige
+   * kategorier er hentet ned, så det hele ser duplikeret ud.
+   */
+  foersteSynkroniseringKlar: boolean
 }
 
 const SyncContext = createContext<SyncContextVaerdi | null>(null)
@@ -43,6 +51,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const { genindlaesFraDatabase } = useData()
   const [status, setStatus] = useState<SyncStatus>('inaktiv')
   const [sidstSynkroniseret, setSidstSynkroniseret] = useState<number | null>(null)
+  // Uden sky-forbindelse er der intet at vente på - så er "første synkronisering" allerede overstået.
+  const [foersteSynkroniseringKlar, setFoersteSynkroniseringKlar] = useState(!harSkyForbindelse)
   const forsinkelseRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const koerFuldSynkronisering = useCallback(async () => {
@@ -57,6 +67,10 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     } catch {
       // Forbliver med synket: 0 lokalt - prøves automatisk igen ved næste lejlighed.
       setStatus('fejl')
+    } finally {
+      // Sættes uanset udfald - ellers ville en enhed uden forbindelse ved
+      // allerførste login aldrig komme videre.
+      setFoersteSynkroniseringKlar(true)
     }
   }, [loggetInd, genindlaesFraDatabase])
 
@@ -106,7 +120,12 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     }
   }, [loggetInd, koerFuldSynkronisering])
 
-  const vaerdi: SyncContextVaerdi = { harSkyForbindelse, status, sidstSynkroniseret }
+  const vaerdi: SyncContextVaerdi = {
+    harSkyForbindelse,
+    status,
+    sidstSynkroniseret,
+    foersteSynkroniseringKlar,
+  }
 
   return <SyncContext.Provider value={vaerdi}>{children}</SyncContext.Provider>
 }

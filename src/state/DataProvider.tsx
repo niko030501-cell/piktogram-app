@@ -17,6 +17,7 @@ import * as piktogramRepo from '../db/pictogramsRepo'
 import * as fastValgRepo from '../db/fasteValgRepo'
 import * as valgRegistreringRepo from '../db/valgRegistreringerRepo'
 import { saaFoersteGangHvisTomt } from '../db/seed'
+import { harSkyForbindelse } from '../sync/supabaseClient'
 import { SNIPPEN_MAKS } from '../db/schema'
 import type { FastValg, Kategori, Piktogram, ValgRegistrering } from '../db/schema'
 
@@ -78,7 +79,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void (async () => {
-      await saaFoersteGangHvisTomt()
+      // Med sky-forbindelse skal en helt ny, tom enhed IKKE så sig selv med
+      // standardkategorier - den skal have de rigtige kategorier fra skyen i
+      // stedet. Sås den lokalt først, ender begge sæt med at ligge der efter
+      // den første synkronisering (se SyncProvider.tsx for den anden halvdel
+      // af denne rettelse).
+      if (!harSkyForbindelse) {
+        await saaFoersteGangHvisTomt()
+      }
       await indlaesAlt()
       setKlarTilBrug(true)
     })()

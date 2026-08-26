@@ -9,7 +9,7 @@ import { DataProvider, useData } from './state/DataProvider'
 import { SettingsProvider, useSettings } from './state/SettingsProvider'
 import { AuthProvider, useAuth } from './features/auth/AuthProvider'
 import { LoginScreen } from './features/auth/LoginScreen'
-import { SyncProvider } from './sync/SyncProvider'
+import { SyncProvider, useSync } from './sync/SyncProvider'
 import { AppShell } from './app/AppShell'
 import { forbeedTalestemmer } from './speech/speech'
 import { initServiceWorker } from './pwa/registerSW'
@@ -25,6 +25,7 @@ function AppIndhold() {
   const { klarTilBrug: dataKlar } = useData()
   const { klarTilBrug: settingsKlar } = useSettings()
   const { klarTilBrug: authKlar, loggetInd } = useAuth()
+  const { foersteSynkroniseringKlar } = useSync()
 
   useEffect(() => {
     forbeedTalestemmer()
@@ -33,6 +34,10 @@ function AppIndhold() {
 
   if (!dataKlar || !settingsKlar || !authKlar) return <TomSkaerm />
   if (!loggetInd) return <LoginScreen />
+  // Venter til første forsøg på at hente ned fra skyen er overstået, så en
+  // helt ny enhed ikke når at vise/så noget, før de rigtige kategorier er
+  // hentet (se DataProvider.tsx og SyncProvider.tsx for resten af rettelsen).
+  if (!foersteSynkroniseringKlar) return <TomSkaerm />
 
   return (
     <>
