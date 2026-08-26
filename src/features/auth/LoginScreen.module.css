@@ -1,0 +1,37 @@
+.side {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--space-4) + env(safe-area-inset-top)) calc(var(--space-4) + env(safe-area-inset-right))
+    calc(var(--space-4) + env(safe-area-inset-bottom)) calc(var(--space-4) + env(safe-area-inset-left));
+}
+
+.boks {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-5);
+}
+
+.titel {
+  margin: 0;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.hjaelp {
+  margin: 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.fejl {
+  margin: 0;
+  color: var(--color-danger);
+  text-align: center;
+}
