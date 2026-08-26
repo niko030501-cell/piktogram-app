@@ -31,7 +31,7 @@ interface DataContextVaerdi {
   piktogrammer: Piktogram[]
   favoritter: Piktogram[]
   piktogrammerForKategori: (kategoriId: string) => Piktogram[]
-  opretKategori: (navn: string, farve: string) => Promise<Kategori>
+  opretKategori: (navn: string, farve: string, billede?: Blob | null) => Promise<Kategori>
   opdaterKategori: (kategori: Kategori) => Promise<void>
   sletKategoriOgIndhold: (id: string) => Promise<void>
   omorganiserKategorier: (nyeIRaekkefolge: Kategori[]) => Promise<void>
@@ -99,12 +99,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   )
 
   const opretKategori = useCallback(
-    async (navn: string, farve: string) => {
+    async (navn: string, farve: string, billede: Blob | null = null) => {
       const ny: Kategori = {
         id: kategoriRepo.nyKategoriId(),
         navn,
         farve,
         raekkefolge: kategorier.length,
+        billede,
       }
       await kategoriRepo.gemKategori(ny)
       setKategorier((forrige) => [...forrige, ny])

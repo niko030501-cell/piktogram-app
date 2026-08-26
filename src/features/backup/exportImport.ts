@@ -21,7 +21,11 @@ import type {
   ValgRegistrering,
 } from '../../db/schema'
 
-const EKSPORT_VERSION = 2
+const EKSPORT_VERSION = 3
+
+interface EksportKategori extends Omit<Kategori, 'billede'> {
+  billedeBase64: string | null
+}
 
 interface EksportPiktogram extends Omit<Piktogram, 'billede'> {
   billedeBase64: string | null
@@ -31,7 +35,7 @@ export interface EksportData {
   version: number
   eksporteretDato: string
   indstillinger: Indstilling[]
-  kategorier: Kategori[]
+  kategorier: EksportKategori[]
   piktogrammer: EksportPiktogram[]
   /** Findes ikke i sikkerhedskopier lavet før version 2 - importeres da som tom liste. */
   fasteValg?: FastValg[]
@@ -76,6 +80,13 @@ export async function lavEksportData(): Promise<EksportData> {
     valgRegistreringRepo.hentAlleValgRegistreringer(),
   ])
 
+  const eksportKategorier: EksportKategori[] = await Promise.all(
+    kategorier.map(async ({ billede, ...resten }) => ({
+      ...resten,
+      billedeBase64: billede ? await blobTilBase64(billede) : null,
+    })),
+  )
+
   const eksportPiktogrammer: EksportPiktogram[] = await Promise.all(
     piktogrammer.map(async ({ billede, ...resten }) => ({
       ...resten,
@@ -87,7 +98,7 @@ export async function lavEksportData(): Promise<EksportData> {
     version: EKSPORT_VERSION,
     eksporteretDato: new Date().toISOString(),
     indstillinger,
-    kategorier,
+    kategorier: eksportKategorier,
     piktogrammer: eksportPiktogrammer,
     fasteValg,
     valgRegistreringer,
@@ -127,6 +138,14 @@ export async function laesBackupFil(fil: File): Promise<IndlaestBackup> {
 }
 
 export async function importerBackup(data: EksportData): Promise<void> {
+  const kategorier: Kategori[] = await Promise.all(
+    data.kategorier.map(async ({ billedeBase64, ...resten }) => ({
+      ...resten,
+      // Sikkerhedskopier fra før billeder på kategorier (version < 3) har
+      // ikke billedeBase64 - de importeres bare uden billede.
+      billede: billedeBase64 ? await base64TilBlob(billedeBase64) : null,
+    })),
+  )
   const piktogrammer: Piktogram[] = await Promise.all(
     data.piktogrammer.map(async ({ billedeBase64, ...resten }) => ({
       ...resten,
@@ -134,7 +153,7 @@ export async function importerBackup(data: EksportData): Promise<void> {
     })),
   )
   await erstatAltIndhold(
-    data.kategorier,
+    kategorier,
     piktogrammer,
     data.indstillinger ?? [],
     data.fasteValg ?? [],

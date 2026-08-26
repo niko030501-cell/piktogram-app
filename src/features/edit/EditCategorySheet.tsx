@@ -1,11 +1,13 @@
-// Opret en ny kategori eller rediger en eksisterende: navn, farve, og slet
-// (med bekræftelse - og en tydelig advarsel hvis kategorien indeholder
-// piktogrammer, da de også slettes).
+// Opret en ny kategori eller rediger en eksisterende: navn, billede, farve,
+// og slet (med bekræftelse - og en tydelig advarsel hvis kategorien
+// indeholder piktogrammer, da de også slettes).
 
 import { useState } from 'react'
 import { Modal } from '../../components/Modal'
 import knap from '../../styles/buttons.module.css'
 import { useData } from '../../state/DataProvider'
+import { useObjectUrl } from '../../state/useObjectUrl'
+import { skalerOgKomprimerBillede, vaelgEnkeltBillede } from '../import/imageProcessing'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import type { Kategori } from '../../db/schema'
 import styles from './EditSheet.module.css'
@@ -33,19 +35,28 @@ export function EditCategorySheet({ kategori, onLuk }: Props) {
   const { opretKategori, opdaterKategori, sletKategoriOgIndhold, piktogrammerForKategori } = useData()
   const [navn, setNavn] = useState(kategori?.navn ?? '')
   const [farve, setFarve] = useState(kategori?.farve ?? FARVE_FORSLAG[0])
+  const [billede, setBillede] = useState<Blob | null>(kategori?.billede ?? null)
   const [visSletBekraeft, setVisSletBekraeft] = useState(false)
   const [gemmer, setGemmer] = useState(false)
+  const billedeUrl = useObjectUrl(billede)
 
   const antalPiktogrammer = kategori ? piktogrammerForKategori(kategori.id).length : 0
+
+  async function haandterSkiftBillede() {
+    const fil = await vaelgEnkeltBillede()
+    if (!fil) return
+    const komprimeret = await skalerOgKomprimerBillede(fil)
+    setBillede(komprimeret)
+  }
 
   async function haandterGem() {
     const trimmet = navn.trim()
     if (!trimmet) return
     setGemmer(true)
     if (kategori) {
-      await opdaterKategori({ ...kategori, navn: trimmet, farve })
+      await opdaterKategori({ ...kategori, navn: trimmet, farve, billede })
     } else {
-      await opretKategori(trimmet, farve)
+      await opretKategori(trimmet, farve, billede)
     }
     setGemmer(false)
     onLuk()
@@ -74,6 +85,23 @@ export function EditCategorySheet({ kategori, onLuk }: Props) {
 
   return (
     <Modal titel={kategori ? 'Rediger kategori' : 'Ny kategori'} onLuk={onLuk}>
+      <div className={styles.billedRaekke}>
+        <span className={styles.forhaandsvisning}>
+          {billedeUrl ? (
+            <img src={billedeUrl} alt="" />
+          ) : (
+            <span className={styles.mangler}>Intet billede</span>
+          )}
+        </span>
+        <button type="button" className={knap.sekundaer} onClick={haandterSkiftBillede}>
+          Skift billede
+        </button>
+      </div>
+      <p className={styles.hjaelpetekst}>
+        Vises på kategoriflisen på forsiden - vigtigt for at hun selv kan finde rundt uden at kunne
+        læse.
+      </p>
+
       <label className={styles.felt}>
         <span>Navn</span>
         <input

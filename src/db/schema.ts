@@ -8,6 +8,12 @@ export interface Kategori {
   /** Hex-farvekode, fx "#5B7FA6". Bruges konsekvent som genkendelse for kategorien. */
   farve: string
   raekkefolge: number
+  /**
+   * Valgfrit billede vist på kategoriflisen på forsiden - vigtigt for at
+   * hun selv kan finde rundt uden at kunne læse. Null indtil et er tilføjet;
+   * flisen falder da tilbage til kun farve og navn.
+   */
+  billede: Blob | null
 }
 
 export interface Piktogram {
@@ -69,12 +75,12 @@ export type SvarType =
   | { type: 'andet' }
 
 export const START_KATEGORIER: Omit<Kategori, 'id'>[] = [
-  { navn: 'Basis', farve: '#5B7FA6', raekkefolge: 0 },
-  { navn: 'Mad og drikke', farve: '#C97B4A', raekkefolge: 1 },
-  { navn: 'Hygiejne', farve: '#5FA090', raekkefolge: 2 },
-  { navn: 'Aktiviteter', farve: '#9B72B0', raekkefolge: 3 },
-  { navn: 'Følelser', farve: '#C15C6B', raekkefolge: 4 },
-  { navn: 'Personer og Steder', farve: '#7C8C5C', raekkefolge: 5 },
+  { navn: 'Basis', farve: '#5B7FA6', raekkefolge: 0, billede: null },
+  { navn: 'Mad og drikke', farve: '#C97B4A', raekkefolge: 1, billede: null },
+  { navn: 'Hygiejne', farve: '#5FA090', raekkefolge: 2, billede: null },
+  { navn: 'Aktiviteter', farve: '#9B72B0', raekkefolge: 3, billede: null },
+  { navn: 'Følelser', farve: '#C15C6B', raekkefolge: 4, billede: null },
+  { navn: 'Personer og Steder', farve: '#7C8C5C', raekkefolge: 5, billede: null },
 ]
 
 /** Piktogrammer der oprettes uden billede i Basis-kategorien ved første opstart. */
