@@ -1,17 +1,20 @@
 # Piktogram app
 
-En piktogram-app til daglig kommunikation på et bosted. Billeder, kategorier
-og indstillinger ligger udelukkende på den enkelte telefon/iPad - der er
-ingen server, intet login og intet sendes nogen steder hen. Appen virker
-fuldt offline, når den først er installeret.
+En piktogram-app til daglig kommunikation på et bosted. Kategorier,
+piktogrammer, billeder, faste valg og registreringer synkroniseres
+automatisk mellem enheder via en sky-forbindelse (Supabase) og kræver
+login for at kunne ses eller ændres. Appen virker desuden fuldt offline,
+når den først er installeret og logget ind - ændringer lavet offline
+sendes af sig selv, når enheden får forbindelse igen.
 
 Denne fil er skrevet til dig, der ikke er programmør, og forklarer:
 
 1. [Hvordan du starter appen på din egen computer, mens den udvikles](#1-start-appen-lokalt-til-udvikling)
-2. [Hvordan du lægger appen ud, så telefoner kan installere den](#2-læg-appen-ud-udgivelse)
-3. [Hvordan du lægger appen på hjemmeskærmen på iPhone/iPad](#3-læg-appen-på-hjemmeskærmen)
-4. [Hvordan du tager og gendanner en sikkerhedskopi](#4-sikkerhedskopi)
-5. [Kort om hvad der ligger hvor i koden](#5-hvad-ligger-hvor)
+2. [Hvordan appen udgives (GitHub + Netlify)](#2-udgivelse-github--netlify)
+3. [Sky-synkronisering (Supabase) og login](#3-sky-synkronisering-supabase-og-login)
+4. [Hvordan du lægger appen på hjemmeskærmen på iPhone/iPad](#4-læg-appen-på-hjemmeskærmen)
+5. [Hvordan du tager og gendanner en sikkerhedskopi](#5-sikkerhedskopi)
+6. [Kort om hvad der ligger hvor i koden](#6-hvad-ligger-hvor)
 
 ---
 
@@ -40,39 +43,53 @@ npm run preview
 `npm run dev` viser IKKE offline-understøttelsen korrekt - det gør kun den
 "rigtige" bygning fra `npm run build`.
 
----
-
-## 2. Læg appen ud (udgivelse)
-
-Appen består udelukkende af almindelige filer (HTML, CSS, JavaScript) uden
-nogen database eller server bagved. Den skal ligge et sted med **HTTPS**,
-for at iPhone/iPad kan installere den "Til hjemmeskærm".
-
-Anbefaling: **[Netlify](https://www.netlify.com/)**, fordi det er gratis,
-kræver ikke at du kan noget med git/GitHub, og fordi Netlify serverer
-appen fra roden af sit domæne (undgår et par tekniske faldgruber, som
-GitHub Pages har).
-
-Sådan gør du:
-
-1. Byg appen: `npm run build`. Det opretter en mappe der hedder `dist`.
-2. Gå til [app.netlify.com/drop](https://app.netlify.com/drop).
-3. Træk hele `dist`-mappen ind i browservinduet.
-4. Netlify giver dig en adresse (fx `https://dit-navn.netlify.app`) - det
-   er den adresse, telefonerne skal bruge.
-
-Vil du opdatere appen senere (fx efter at have ændret farver eller tilføjet
-noget i koden), gentager du blot trin 1-3 - Netlify erstatter automatisk
-den gamle udgave.
-
-**Vigtigt om fortrolighed:** kun selve appens kode lægges ud på Netlify.
-Ingen billeder, navne eller andre personlige oplysninger er nogensinde en
-del af det, du bygger og lægger ud - de bliver først til, når appen bruges
-på den enkelte telefon, og bliver liggende der.
+Kør appen lokalt, skal du bruge de samme to hemmeligheder som i afsnit 3,
+i en fil der hedder `.env.local` i projektets rodmappe (se `.env.example`).
 
 ---
 
-## 3. Læg appen på hjemmeskærmen
+## 2. Udgivelse (GitHub + Netlify)
+
+Koden ligger på GitHub, og Netlify er sat op til automatisk at bygge og
+udgive en ny version, hver gang der sendes ("pushes") ny kode til `main`-
+grenen på GitHub. Der skal altså ikke gøres noget manuelt for at udgive en
+opdatering - det sker af sig selv.
+
+**Vigtigt:** de to hemmeligheder fra Supabase (se afsnit 3) skal være sat
+som "Environment variables" i Netlifys indstillinger (Site configuration →
+Environment variables) - ellers kan den udgivne app ikke synkronisere,
+selvom den lokale udvikler-udgave kan.
+
+---
+
+## 3. Sky-synkronisering (Supabase) og login
+
+Appens data ligger i en delt database i skyen (Supabase), så alle enheder
+automatisk viser det samme. Det kræver et login - én fælles e-mail og
+adgangskode, som hele personalet bruger. Man logger kun ind én gang pr.
+enhed; herefter husker enheden det selv.
+
+**Er man ikke logget ind, vises der intet i appen overhovedet** - hverken
+billeder eller navne. Det er noget andet end **Leyla-tilstand**, som kun
+låser for redigering, når man allerede er logget ind (se afsnit 6).
+
+Adgangen til data er beskyttet, så kun et gyldigt login kan se eller ændre
+noget - den offentlige nøgle, der ligger i appens kode, giver ikke i sig
+selv adgang til noget.
+
+**Sådan tages en enhed ud af brug** (mistet telefon, eller den skal skiftes
+ud): Indstillinger → "Log ud af denne enhed". Det rydder alt lokalt
+indhold på den enhed - dataene ligger stadig trygt i skyen og på de andre
+enheder.
+
+**Kendt begrænsning:** Supabases gratis niveau sætter projektet "på pause"
+efter ca. en uges total inaktivitet. Det stopper ikke offline-brug af det,
+der allerede er hentet ned, men synkronisering står stille, indtil nogen
+åbner Supabase-dashboardet og genstarter projektet.
+
+---
+
+## 4. Læg appen på hjemmeskærmen
 
 **På iPhone/iPad (Safari):**
 
@@ -82,20 +99,20 @@ på den enkelte telefon, og bliver liggende der.
 2. Tryk på del-ikonet (kvadrat med en pil op).
 3. Vælg **"Føj til hjemmeskærm"**.
 4. Tryk **"Tilføj"**.
+5. Åbn appen fra hjemmeskærmen, og log ind med den fælles adgangskode
+   (se afsnit 3) - kun nødvendigt denne ene gang på denne enhed.
 
 Appen hedder nu "Piktogram app" på hjemmeskærmen, med sit eget ikon, og
 åbner uden Safaris adressefelt - som en almindelig app. Fra nu af virker
-den fuldt offline.
-
-**Bemærk:** iPhone/iPad kan i sjældne tilfælde rydde data for apps, der
-ikke har været åbnet i meget lang tid. Det er derfor vigtigt at tage
-[sikkerhedskopier](#4-sikkerhedskopi) jævnligt - se nedenfor.
+den fuldt offline (efter første login og en indledende synkronisering).
 
 ---
 
-## 4. Sikkerhedskopi
+## 5. Sikkerhedskopi
 
-Under **Indstillinger → Sikkerhedskopi** i appen kan du:
+Sikkerhedskopi-filen er stadig nyttig, selv med sky-synkronisering - den
+virker uafhængigt af, om Supabase-kontoen findes, er nået, eller er sat på
+pause. Under **Indstillinger → Sikkerhedskopi** i appen kan du:
 
 - **Gem sikkerhedskopi**: gemmer alle kategorier, piktogrammer, billeder,
   faste valg og registreringer i én fil (`piktogram-app-sikkerhedskopi-
@@ -103,19 +120,15 @@ Under **Indstillinger → Sikkerhedskopi** i appen kan du:
   dig selv, eller iCloud.
 - **Gendan fra sikkerhedskopi**: vælg en tidligere gemt fil. Alt nuværende
   indhold i appen bliver erstattet - du bliver bedt om at bekræfte det
-  først.
-
-Dette er også fremgangsmåden til at flytte alt indhold over på en anden
-enhed, fx når billederne senere skal over på hendes egen iPad: tag en
-sikkerhedskopi på den ene enhed, og gendan den på den anden.
+  først, og det gendannede indhold synkroniseres derefter til skyen igen.
 
 Tag gerne en sikkerhedskopi med jævne mellemrum (fx hver måned, eller
-efter en større omgang nye billeder) - det er den eneste måde arbejdet er
-sikret imod at gå tabt.
+efter en større omgang nye billeder) - det er en ekstra sikkerhed oven i
+sky-synkroniseringen, ikke en erstatning for den.
 
 ---
 
-## 5. Hvad ligger hvor
+## 6. Hvad ligger hvor
 
 Kort oversigt til dig, der vil kigge i koden eller rette noget selv:
 
@@ -124,6 +137,11 @@ Kort oversigt til dig, der vil kigge i koden eller rette noget selv:
   sted der taler direkte med databasen.
 - `src/state/` - holder data og indstillinger i hukommelsen, så resten af
   appen kan bruge dem uden at spørge databasen hele tiden.
+- `src/sync/` - sky-synkronisering: `supabaseClient.ts` opretter selve
+  forbindelsen, `push.ts`/`pull.ts` sender og henter ændringer,
+  `SyncProvider.tsx` styrer hvornår det sker, `dirtySignal.ts` er en lille
+  besked-tjeneste der fortæller synkroniseringen, at noget er ændret lokalt.
+- `src/features/auth/` - login-skærmen og hvem der er logget ind.
 - `src/features/` - selve skærmene og funktionerne, én mappe per emne:
   `home` (forsiden), `category` (kategori-skærmen), `viewer`
   (fuldskærmsvisningen), `valgtavle` (valgtavle, faste valg og
@@ -145,7 +163,10 @@ under Indstillinger, og slås fra igen ved at holde teksten "Piktogram app"
 nederst i hjørnet inde i 3 sekunder og indtaste den 4-cifrede kode, du
 valgte, da du slog den til. Det er tænkt som en simpel spærre, der
 forhindrer utilsigtede ændringer - ikke som en sikkerhedsløsning, og koden
-gemmes derfor kun lokalt på enheden.
+gemmes derfor kun lokalt på enheden, uden for sky-synkroniseringen. Login
+(afsnit 3) og Leyla-tilstand er to uafhængige spærrer: login afgør om
+enheden overhovedet kan bruges, Leyla-tilstand afgør (når man er logget
+ind) om der kan redigeres.
 
 ### Om valgtavlen og faste valg
 
