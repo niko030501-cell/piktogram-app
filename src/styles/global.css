@@ -12,6 +12,10 @@ html,
 body,
 #root {
   height: 100%;
+  /* 100dvh regner rigtigt med, at Safaris adresselinje på iPhone kan
+     dukke op og forsvinde igen - almindelig 100%/100vh kan ellers give
+     forkert højde, så toppen eller bunden af skærmen klippes af. */
+  height: 100dvh;
 }
 
 body {
