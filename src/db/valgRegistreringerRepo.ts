@@ -20,6 +20,12 @@ export async function hentValgRegistreringerTilSynkronisering(): Promise<ValgReg
   return db.getAllFromIndex('valgRegistreringer', 'by-synket', 0)
 }
 
+/** Bruges af synkroniseringen til at sammenligne en ekstern registrering med den lokale udgave. */
+export async function hentValgRegistreringMedId(id: string): Promise<ValgRegistrering | undefined> {
+  const db = await getDB()
+  return db.get('valgRegistreringer', id)
+}
+
 /** Sættes af synkroniseringen selv, når en registrering hentes FRA skyen - skal ikke markeres som "mangler at blive sendt op" igen. */
 export async function gemValgRegistrering(
   registrering: ValgRegistrering,

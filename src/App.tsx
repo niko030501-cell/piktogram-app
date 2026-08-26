@@ -9,6 +9,7 @@ import { DataProvider, useData } from './state/DataProvider'
 import { SettingsProvider, useSettings } from './state/SettingsProvider'
 import { AuthProvider, useAuth } from './features/auth/AuthProvider'
 import { LoginScreen } from './features/auth/LoginScreen'
+import { SyncProvider } from './sync/SyncProvider'
 import { AppShell } from './app/AppShell'
 import { forbeedTalestemmer } from './speech/speech'
 import { initServiceWorker } from './pwa/registerSW'
@@ -46,7 +47,9 @@ export default function App() {
     <DataProvider>
       <SettingsProvider>
         <AuthProvider>
-          <AppIndhold />
+          <SyncProvider>
+            <AppIndhold />
+          </SyncProvider>
         </AuthProvider>
       </SettingsProvider>
     </DataProvider>

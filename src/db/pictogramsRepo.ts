@@ -36,6 +36,12 @@ export async function hentPiktogrammerTilSynkronisering(): Promise<Piktogram[]> 
   return db.getAllFromIndex('piktogrammer', 'by-synket', 0)
 }
 
+/** Bruges af synkroniseringen til at sammenligne en ekstern række med den lokale udgave. */
+export async function hentPiktogramMedId(id: string): Promise<Piktogram | undefined> {
+  const db = await getDB()
+  return db.get('piktogrammer', id)
+}
+
 interface GemValgfri {
   /** Sættes af synkroniseringen selv, når en række hentes FRA skyen - skal ikke markere den som "mangler at blive sendt op" igen. */
   fraSky?: boolean

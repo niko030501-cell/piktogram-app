@@ -21,6 +21,12 @@ export async function hentFasteValgTilSynkronisering(): Promise<FastValg[]> {
   return db.getAllFromIndex('fasteValg', 'by-synket', 0)
 }
 
+/** Bruges af synkroniseringen til at sammenligne en ekstern række med den lokale udgave. */
+export async function hentFastValgMedId(id: string): Promise<FastValg | undefined> {
+  const db = await getDB()
+  return db.get('fasteValg', id)
+}
+
 interface GemValgfri {
   /** Sættes af synkroniseringen selv, når en række hentes FRA skyen - skal ikke markere den som "mangler at blive sendt op" igen. */
   fraSky?: boolean

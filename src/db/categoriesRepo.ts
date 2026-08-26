@@ -23,6 +23,12 @@ export async function hentKategorierTilSynkronisering(): Promise<Kategori[]> {
   return db.getAllFromIndex('kategorier', 'by-synket', 0)
 }
 
+/** Bruges af synkroniseringen til at sammenligne en ekstern række med den lokale udgave. */
+export async function hentKategoriMedId(id: string): Promise<Kategori | undefined> {
+  const db = await getDB()
+  return db.get('kategorier', id)
+}
+
 interface GemValgfri {
   /** Sættes af synkroniseringen selv, når en række hentes FRA skyen - skal ikke markere den som "mangler at blive sendt op" igen. */
   fraSky?: boolean
