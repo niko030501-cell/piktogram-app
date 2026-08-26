@@ -22,6 +22,12 @@ body {
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  /* Appen skal føles som en almindelig app, ikke en webside - derfor ingen
+     knib-zoom eller dobbelt-tryk-zoom på siden generelt. Selve billedet i
+     fuldskærmsvisningen har sin egen, bevidste zoom (se useImageGestures.ts)
+     og er upåvirket af dette, da den allerede sætter touch-action: none. */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
 }
 
 button {
