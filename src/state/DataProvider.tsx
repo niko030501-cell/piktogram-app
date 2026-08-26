@@ -48,7 +48,9 @@ interface DataContextVaerdi {
   sletFastValg: (id: string) => Promise<void>
   omorganiserFasteValg: (nyeIRaekkefolge: FastValg[]) => Promise<void>
   valgRegistreringer: ValgRegistrering[]
-  tilfoejValgRegistrering: (registrering: Omit<ValgRegistrering, 'id'>) => Promise<void>
+  tilfoejValgRegistrering: (
+    registrering: Omit<ValgRegistrering, 'id' | 'opdateret' | 'synket'>,
+  ) => Promise<void>
   genindlaesFraDatabase: () => Promise<void>
 }
 
@@ -106,6 +108,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         farve,
         raekkefolge: kategorier.length,
         billede,
+        billedeStoragePath: null,
+        opdateret: Date.now(),
+        slettet: null,
+        synket: 0,
       }
       await kategoriRepo.gemKategori(ny)
       setKategorier((forrige) => [...forrige, ny])
@@ -214,6 +220,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         sporgsmaal,
         piktogramIds,
         raekkefolge: fasteValg.length,
+        opdateret: Date.now(),
+        slettet: null,
+        synket: 0,
       }
       await fastValgRepo.gemFastValg(ny)
       setFasteValg((forrige) => [...forrige, ny])
@@ -238,8 +247,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setFasteValg(opdaterede)
   }, [])
 
-  const tilfoejValgRegistrering = useCallback(async (registrering: Omit<ValgRegistrering, 'id'>) => {
-    const ny: ValgRegistrering = { id: valgRegistreringRepo.nyValgRegistreringId(), ...registrering }
+  const tilfoejValgRegistrering = useCallback(async (registrering: Omit<ValgRegistrering, 'id' | 'opdateret' | 'synket'>) => {
+    const ny: ValgRegistrering = {
+      id: valgRegistreringRepo.nyValgRegistreringId(),
+      ...registrering,
+      opdateret: Date.now(),
+      synket: 0,
+    }
     await valgRegistreringRepo.gemValgRegistrering(ny)
     setValgRegistreringer((forrige) => [ny, ...forrige])
   }, [])

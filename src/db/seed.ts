@@ -33,10 +33,14 @@ export async function saaFoersteGangHvisTomt(): Promise<void> {
     navn,
     kategoriId: basis.id,
     billede: null,
+    billedeStoragePath: null,
     raekkefolge: index,
     favorit: 0,
     snippenRaekkefolge: null,
     oprettet: Date.now(),
+    opdateret: 0,
+    slettet: null,
+    synket: 0,
   }))
 
   await Promise.all([

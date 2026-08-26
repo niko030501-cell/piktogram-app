@@ -10,11 +10,12 @@ interface PiktogramDBSkema extends DBSchema {
   kategorier: {
     key: string
     value: Kategori
+    indexes: { 'by-synket': number }
   }
   piktogrammer: {
     key: string
     value: Piktogram
-    indexes: { 'by-kategori': string; 'by-favorit': number }
+    indexes: { 'by-kategori': string; 'by-favorit': number; 'by-synket': number }
   }
   indstillinger: {
     key: string
@@ -23,16 +24,17 @@ interface PiktogramDBSkema extends DBSchema {
   fasteValg: {
     key: string
     value: FastValg
+    indexes: { 'by-synket': number }
   }
   valgRegistreringer: {
     key: string
     value: ValgRegistrering
-    indexes: { 'by-tidspunkt': number }
+    indexes: { 'by-tidspunkt': number; 'by-synket': number }
   }
 }
 
 const DB_NAVN = 'piktogram-db'
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 let dbPromise: Promise<IDBPDatabase<PiktogramDBSkema>> | null = null
 
@@ -43,7 +45,7 @@ export function getDB(): Promise<IDBPDatabase<PiktogramDBSkema>> {
       // DB_VERSION hæves. Skal datamodellen ændres senere: hæv DB_VERSION og
       // tilføj et NYT "if (oldVersion < X)"-trin herunder - rør aldrig ved
       // et eksisterende trin, så gamle enheder kan opgradere sikkert.
-      upgrade(db, oldVersion) {
+      async upgrade(db, oldVersion, _newVersion, transaction) {
         if (oldVersion < 1) {
           db.createObjectStore('kategorier', { keyPath: 'id' })
 
@@ -58,6 +60,57 @@ export function getDB(): Promise<IDBPDatabase<PiktogramDBSkema>> {
 
           const valgRegistreringer = db.createObjectStore('valgRegistreringer', { keyPath: 'id' })
           valgRegistreringer.createIndex('by-tidspunkt', 'tidspunkt')
+        }
+        if (oldVersion < 3) {
+          // Nyt indeks til at finde rækker, der mangler at blive sendt til
+          // skyen (se src/sync/). "by-synket" findes først fra version 3,
+          // så den tilføjes her - og alt eksisterende indhold markeres som
+          // "mangler at blive sendt op", hvilket er sådan det havner i
+          // skyen første gang synkronisering slås til.
+          transaction.objectStore('kategorier').createIndex('by-synket', 'synket')
+          transaction.objectStore('piktogrammer').createIndex('by-synket', 'synket')
+          transaction.objectStore('fasteValg').createIndex('by-synket', 'synket')
+          transaction.objectStore('valgRegistreringer').createIndex('by-synket', 'synket')
+
+          let kategoriCursor = await transaction.objectStore('kategorier').openCursor()
+          while (kategoriCursor) {
+            await kategoriCursor.update({
+              ...kategoriCursor.value,
+              billedeStoragePath: null,
+              opdateret: 0,
+              slettet: null,
+              synket: 0,
+            })
+            kategoriCursor = await kategoriCursor.continue()
+          }
+
+          let piktogramCursor = await transaction.objectStore('piktogrammer').openCursor()
+          while (piktogramCursor) {
+            await piktogramCursor.update({
+              ...piktogramCursor.value,
+              billedeStoragePath: null,
+              opdateret: 0,
+              slettet: null,
+              synket: 0,
+            })
+            piktogramCursor = await piktogramCursor.continue()
+          }
+
+          let fastValgCursor = await transaction.objectStore('fasteValg').openCursor()
+          while (fastValgCursor) {
+            await fastValgCursor.update({ ...fastValgCursor.value, opdateret: 0, slettet: null, synket: 0 })
+            fastValgCursor = await fastValgCursor.continue()
+          }
+
+          let registreringCursor = await transaction.objectStore('valgRegistreringer').openCursor()
+          while (registreringCursor) {
+            await registreringCursor.update({
+              ...registreringCursor.value,
+              opdateret: 0,
+              synket: 0,
+            })
+            registreringCursor = await registreringCursor.continue()
+          }
         }
       },
     })

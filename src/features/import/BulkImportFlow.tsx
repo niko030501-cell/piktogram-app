@@ -103,10 +103,14 @@ export function BulkImportFlow({ forudvalgtKategoriId, onLuk }: Props) {
         navn: kladde.navn.trim(),
         kategoriId: kladde.kategoriId,
         billede: kladde.komprimeretBillede,
+        billedeStoragePath: null,
         raekkefolge,
         favorit: 0,
         snippenRaekkefolge: null,
         oprettet: Date.now(),
+        opdateret: Date.now(),
+        slettet: null,
+        synket: 0,
       })
     }
 
