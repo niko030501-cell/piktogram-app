@@ -1,0 +1,71 @@
+.baggrund {
+  position: fixed;
+  inset: 0;
+  background: #23201a;
+  z-index: 50;
+  overflow: hidden;
+  transform-origin: center center;
+  transition:
+    transform var(--duration-normal) var(--ease-standard),
+    opacity var(--duration-normal) linear;
+}
+
+.lukkerFade {
+  opacity: 0;
+}
+
+.indhold {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  gap: var(--space-4);
+  padding: calc(var(--space-5) + env(safe-area-inset-top)) calc(var(--space-4) + env(safe-area-inset-right))
+    calc(var(--space-5) + env(safe-area-inset-bottom)) calc(var(--space-4) + env(safe-area-inset-left));
+  opacity: 0;
+  transition: opacity var(--duration-fast) linear;
+}
+
+.indhold.synlig {
+  opacity: 1;
+}
+
+.billedRamme {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+.billede {
+  max-width: 92%;
+  max-height: 92%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  background: var(--color-bg-elevated);
+}
+
+.mangler {
+  color: #cfc8ba;
+  font-size: 1.4rem;
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.ord {
+  color: #fbf9f4;
+  font-size: clamp(1.8rem, 6vw, 3.2rem);
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+  padding: 0 var(--space-4);
+}

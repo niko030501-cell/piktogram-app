@@ -1,0 +1,50 @@
+.diskretKnap {
+  position: fixed;
+  right: calc(var(--space-3) + env(safe-area-inset-right));
+  bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-muted);
+  opacity: 0.55;
+  font-size: 0.8rem;
+  z-index: 40;
+}
+
+.prikker {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.prik {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  display: inline-block;
+}
+
+.udfyldt {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.fejlBesked {
+  color: var(--color-danger);
+  text-align: center;
+  margin: 0;
+}
+
+.taltavle {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.tal {
+  min-height: 64px;
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1.3rem;
+  font-weight: 600;
+}

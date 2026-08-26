@@ -1,0 +1,74 @@
+.snip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.overskrift {
+  flex: 1;
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+}
+
+.redigerLink {
+  color: var(--color-accent);
+  font-weight: 600;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+}
+
+.raekke {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.knap {
+  flex: 0 0 auto;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--tap-min);
+}
+
+.billedRamme {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border);
+}
+
+.billede {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.navn {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  word-break: break-word;
+}
+
+.tomKnap {
+  align-self: flex-start;
+  color: var(--color-text-muted);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+}

@@ -1,0 +1,97 @@
+.side {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: calc(var(--space-4) + env(safe-area-inset-top)) calc(var(--space-4) + env(safe-area-inset-right))
+    var(--space-3) calc(var(--space-4) + env(safe-area-inset-left));
+}
+
+.titel {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 calc(var(--space-4) + env(safe-area-inset-right)) calc(var(--space-6) + env(safe-area-inset-bottom))
+    calc(var(--space-4) + env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.kopieretBesked {
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+}
+
+.manuelTekst {
+  width: 100%;
+  min-height: 140px;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+}
+
+.tom {
+  color: var(--color-text-muted);
+}
+
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.raekke {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.tidspunkt {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fastValgNavn {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.detalje {
+  color: var(--color-text-muted);
+}
+
+.svar {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.hjaelp {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}

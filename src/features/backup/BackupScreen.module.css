@@ -1,0 +1,74 @@
+.side {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: calc(var(--space-4) + env(safe-area-inset-top)) calc(var(--space-4) + env(safe-area-inset-right))
+    var(--space-3) calc(var(--space-4) + env(safe-area-inset-left));
+}
+
+.titel {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 calc(var(--space-4) + env(safe-area-inset-right)) calc(var(--space-6) + env(safe-area-inset-bottom))
+    calc(var(--space-4) + env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.kort {
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.overskrift {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.filKnap {
+  display: inline-flex;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.skjultInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.succesBesked {
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+}
+
+.fejlBesked {
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-danger);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin: 0;
+}

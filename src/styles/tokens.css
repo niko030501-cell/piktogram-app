@@ -1,0 +1,46 @@
+/*
+  Designtokens: alle farver, afstande og rundinger appen bruger, samlet ét
+  sted. Vil du ændre "udseendet" af appen - fx en kategorifarve, eller hvor
+  runde hjørnerne er - er det her du gør det, ikke inde i den enkelte skærm.
+
+  Bevidst kun ét, roligt farvetema (ingen mørk tilstand): kategorifarverne
+  skal genkendes ens hver gang, uanset enhedens systemindstillinger.
+*/
+
+:root {
+  /* Grundfarver - varm og dæmpet, ikke klinisk hvid */
+  --color-bg: #f3efe7;
+  --color-bg-elevated: #fbf9f4;
+  --color-text: #2e2a25;
+  --color-text-muted: #6b6459;
+  --color-border: #ddd5c7;
+
+  --color-accent: #5b7fa6;
+  --color-accent-text: #ffffff;
+  --color-danger: #b4483f;
+  --color-danger-text: #ffffff;
+  --color-focus: #2e2a25;
+
+  /* Afstand */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Runding og trykflader */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --tap-min: 72px;
+
+  /* Bevægelse - bruges kun når "reducer bevægelse" ikke er slået til */
+  --duration-normal: 220ms;
+  --duration-fast: 120ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+}

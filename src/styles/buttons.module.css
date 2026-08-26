@@ -1,0 +1,61 @@
+/*
+  Fælles knap-stile, brugt i hele appen (via `import knap from
+  '.../styles/buttons.module.css'` og `className={knap.primaer}` osv.), så
+  alle knapper ser og opfører sig ens.
+*/
+
+.knap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  font-size: 1.05rem;
+  font-weight: 600;
+  border: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.primaer {
+  composes: knap;
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.sekundaer {
+  composes: knap;
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.fare {
+  composes: knap;
+  background: var(--color-danger);
+  color: var(--color-danger-text);
+}
+
+.ghost {
+  composes: knap;
+  background: transparent;
+  color: var(--color-text);
+}
+
+.ikon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border-radius: 50%;
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border);
+  font-size: 1.3rem;
+}
+
+.knap:disabled,
+.ikon:disabled {
+  opacity: 0.45;
+}
