@@ -5,8 +5,9 @@
 //
 //   node scripts/generate-icons.mjs
 //
-// Ikonet er bevidst enkelt og roligt: en ensfarvet baggrund med et hvidt
-// "billede"-symbol (fotoramme med sol og bjerg) centreret i midten.
+// Designet her skal altid matche public/icons/logo.svg (brugt som favicon) -
+// to "stablede" kort med et sol/bjerg-billedsymbol foran, i appens rolige
+// farvepalet. Ændrer du det ene, så ret det andet til at matche.
 
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
@@ -17,6 +18,10 @@ const HER = dirname(fileURLToPath(import.meta.url))
 const IKON_MAPPE = join(HER, '..', 'public', 'icons')
 
 const BAGGRUND = [0x5b, 0x7f, 0xa6] // #5B7FA6 - rolig blå, samme som "Basis"-kategorien
+const BAGVED_KORT = [0xdd, 0xd5, 0xc7] // #DDD5C7 - samme varme kant-farve som resten af appen
+const FORREST_KORT = [0xfb, 0xf9, 0xf4] // #FBF9F4 - appens kort-baggrund
+const SOL = [0xb4, 0x48, 0x3f] // #B4483F - samme dæmpede rød som "Slet"-knapper
+const BJERG = [0x2e, 0x2a, 0x25] // #2E2A25 - appens mørke tekstfarve
 const HVID = [0xff, 0xff, 0xff]
 
 function nytLaerred(size) {
@@ -65,78 +70,63 @@ function fyldCirkel(pixels, size, cx, cy, r, farve) {
   }
 }
 
-function fyldTrekant(pixels, size, p1, p2, p3, farve) {
-  const minX = Math.floor(Math.min(p1[0], p2[0], p3[0]))
-  const maxX = Math.ceil(Math.max(p1[0], p2[0], p3[0]))
-  const minY = Math.floor(Math.min(p1[1], p2[1], p3[1]))
-  const maxY = Math.ceil(Math.max(p1[1], p2[1], p3[1]))
+// Fylder en vilkårlig polygon (bruges til bjerg-symbolet, som har to takker
+// og dermed 5 hjørnepunkter) via "ray casting": et punkt er inde i figuren,
+// hvis en vandret linje fra punktet krydser polygonens kant et ulige antal
+// gange.
+function fyldPolygon(pixels, size, punkter, farve) {
+  const minX = Math.floor(Math.min(...punkter.map((p) => p[0])))
+  const maxX = Math.ceil(Math.max(...punkter.map((p) => p[0])))
+  const minY = Math.floor(Math.min(...punkter.map((p) => p[1])))
+  const maxY = Math.ceil(Math.max(...punkter.map((p) => p[1])))
 
-  function fortegn(a, b, c) {
-    return (a[0] - c[0]) * (b[1] - c[1]) - (b[0] - c[0]) * (a[1] - c[1])
+  function erInde(px, py) {
+    let inde = false
+    for (let i = 0, j = punkter.length - 1; i < punkter.length; j = i++) {
+      const [xi, yi] = punkter[i]
+      const [xj, yj] = punkter[j]
+      const krydser = yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi
+      if (krydser) inde = !inde
+    }
+    return inde
   }
 
   for (let y = minY; y < maxY; y++) {
     for (let x = minX; x < maxX; x++) {
-      const p = [x + 0.5, y + 0.5]
-      const d1 = fortegn(p, p1, p2)
-      const d2 = fortegn(p, p2, p3)
-      const d3 = fortegn(p, p3, p1)
-      const harNeg = d1 < 0 || d2 < 0 || d3 < 0
-      const harPos = d1 > 0 || d2 > 0 || d3 > 0
-      if (!(harNeg && harPos)) saetPixel(pixels, size, x, y, farve)
+      if (erInde(x + 0.5, y + 0.5)) saetPixel(pixels, size, x, y, farve)
     }
   }
 }
 
+// Alle koordinater herunder er direkte fra public/icons/logo.svg's
+// viewBox (0-512), skaleret med size/512 - se den fil for det "rigtige",
+// håndredigerbare design. Denne funktion er bare en pixel-for-pixel
+// gentegning af den samme figur, til brug for PNG-ikonerne.
 function tegnIkon(size) {
+  const s = size / 512
   const pixels = nytLaerred(size)
 
-  const margin = size * 0.24
-  const rammeStr = size - margin * 2
-  const radius = size * 0.06
-  fyldRundetFirkant(pixels, size, margin, margin, margin + rammeStr, margin + rammeStr, radius, HVID)
+  // Det bagvedliggende, let forskudte kort
+  fyldRundetFirkant(pixels, size, 116 * s, 116 * s, 356 * s, 356 * s, 40 * s, BAGVED_KORT)
 
-  const indreMargin = margin + rammeStr * 0.12
-  const indreStr = rammeStr * 0.76
-  fyldRundetFirkant(
-    pixels,
-    size,
-    indreMargin,
-    indreMargin,
-    indreMargin + indreStr,
-    indreMargin + indreStr,
-    radius * 0.6,
-    BAGGRUND,
-  )
+  // Det forreste kort
+  fyldRundetFirkant(pixels, size, 156 * s, 156 * s, 396 * s, 396 * s, 40 * s, FORREST_KORT)
 
-  const solX = indreMargin + indreStr * 0.28
-  const solY = indreMargin + indreStr * 0.32
-  const solR = indreStr * 0.11
-  fyldCirkel(pixels, size, solX, solY, solR, HVID)
+  // Sol
+  fyldCirkel(pixels, size, 232 * s, 232 * s, 24 * s, SOL)
 
-  fyldTrekant(
+  // Bjerg (to takker, ét sammenhængende omrids)
+  fyldPolygon(
     pixels,
     size,
-    [indreMargin + indreStr * 0.08, indreMargin + indreStr * 0.85],
-    [indreMargin + indreStr * 0.4, indreMargin + indreStr * 0.45],
-    [indreMargin + indreStr * 0.62, indreMargin + indreStr * 0.68],
-    HVID,
-  )
-  fyldTrekant(
-    pixels,
-    size,
-    [indreMargin + indreStr * 0.62, indreMargin + indreStr * 0.68],
-    [indreMargin + indreStr * 0.8, indreMargin + indreStr * 0.5],
-    [indreMargin + indreStr * 0.92, indreMargin + indreStr * 0.85],
-    HVID,
-  )
-  fyldTrekant(
-    pixels,
-    size,
-    [indreMargin + indreStr * 0.08, indreMargin + indreStr * 0.85],
-    [indreMargin + indreStr * 0.62, indreMargin + indreStr * 0.68],
-    [indreMargin + indreStr * 0.92, indreMargin + indreStr * 0.85],
-    HVID,
+    [
+      [176 * s, 356 * s],
+      [236 * s, 276 * s],
+      [266 * s, 306 * s],
+      [306 * s, 246 * s],
+      [356 * s, 356 * s],
+    ],
+    BJERG,
   )
 
   return pixels
