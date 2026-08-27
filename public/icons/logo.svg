@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img">
+  <title>Piktogram app</title>
+  <rect width="512" height="512" fill="#5b7fa6"/>
+  <rect x="116" y="116" width="240" height="240" rx="40" fill="#ddd5c7"/>
+  <rect x="156" y="156" width="240" height="240" rx="40" fill="#fbf9f4"/>
+  <circle cx="232" cy="232" r="24" fill="#b4483f"/>
+  <path d="M176,356 L236,276 L266,306 L306,246 L356,356 Z" fill="#2e2a25"/>
+</svg>

@@ -59,6 +59,7 @@ export function LeylaUnlockAffordance() {
         onPointerUp={stopTryk}
         onPointerLeave={stopTryk}
         onPointerCancel={stopTryk}
+        onContextMenu={(e) => e.preventDefault()}
         aria-label="Lås op (hold trykket i 3 sekunder)"
       >
         Piktogram app
