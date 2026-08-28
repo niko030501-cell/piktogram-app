@@ -10,6 +10,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Piktogram } from '../../db/schema'
+import { useData } from '../../state/DataProvider'
 import { useObjectUrl } from '../../state/useObjectUrl'
 import { usePrefersReducedMotion } from '../../utils/reducedMotion'
 import { useSpeech } from '../../speech/useSpeech'
@@ -34,6 +35,7 @@ export function FullscreenViewer({ piktogrammer, startIndeks, oprindelsesRect, o
   const foersteRender = useRef(true)
   const onLukKaldt = useRef(false)
 
+  const { markerPiktogramBilledeOdelagt } = useData()
   const aktuelt = piktogrammer[indeks]
   const billedeUrl = useObjectUrl(aktuelt?.billede)
 
@@ -144,6 +146,7 @@ export function FullscreenViewer({ piktogrammer, startIndeks, oprindelsesRect, o
                 transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.skala})`,
               }}
               draggable={false}
+              onError={() => void markerPiktogramBilledeOdelagt(aktuelt.id)}
             />
           ) : (
             <div className={styles.mangler}>Mangler billede</div>

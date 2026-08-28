@@ -6,6 +6,7 @@
 import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes } from 'react'
 import type { Piktogram } from '../../db/schema'
+import { useData } from '../../state/DataProvider'
 import { useObjectUrl } from '../../state/useObjectUrl'
 import styles from './PictogramCard.module.css'
 
@@ -19,6 +20,7 @@ export const PictogramCard = forwardRef<HTMLButtonElement, Props>(function Picto
   { piktogram, valgt, visValgMarkering, className, ...resten },
   ref,
 ) {
+  const { markerPiktogramBilledeOdelagt } = useData()
   const billedeUrl = useObjectUrl(piktogram.billede)
 
   return (
@@ -30,7 +32,13 @@ export const PictogramCard = forwardRef<HTMLButtonElement, Props>(function Picto
     >
       <span className={styles.billedRamme}>
         {billedeUrl ? (
-          <img src={billedeUrl} alt="" className={styles.billede} draggable={false} />
+          <img
+            src={billedeUrl}
+            alt=""
+            className={styles.billede}
+            draggable={false}
+            onError={() => void markerPiktogramBilledeOdelagt(piktogram.id)}
+          />
         ) : (
           <span className={styles.mangler}>Mangler billede</span>
         )}

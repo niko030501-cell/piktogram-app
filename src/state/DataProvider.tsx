@@ -43,6 +43,9 @@ interface DataContextVaerdi {
   omorganiserPiktogrammer: (kategoriId: string, nyeIRaekkefolge: Piktogram[]) => Promise<void>
   toggleFavorit: (piktogram: Piktogram) => Promise<FavoritResultat>
   omorganiserSnippen: (nyeIRaekkefolge: Piktogram[]) => Promise<void>
+  /** Kaldes når et billede fejler i browseren (fx en afbrudt download) - rydder det lokalt, så synkroniseringen prøver at hente det igen. */
+  markerPiktogramBilledeOdelagt: (id: string) => Promise<void>
+  markerKategoriBilledeOdelagt: (id: string) => Promise<void>
   fasteValg: FastValg[]
   opretFastValg: (navn: string, sporgsmaal: string, piktogramIds: string[]) => Promise<FastValg>
   opdaterFastValg: (fastValg: FastValg) => Promise<void>
@@ -184,19 +187,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const toggleFavorit = useCallback(
     async (piktogram: Piktogram): Promise<FavoritResultat> => {
+      // Retter kun favorit/snippenRaekkefolge - ikke resten af piktogrammet -
+      // så et billede, der er hentet ned i baggrunden siden sidst appen
+      // genindlæste sin hukommelse, ikke ved et uheld bliver overskrevet med
+      // den forældede udgave, vi selv sidder med i "favoritter" her.
       if (piktogram.favorit === 1) {
-        const opdateret: Piktogram = { ...piktogram, favorit: 0, snippenRaekkefolge: null }
-        const resterende = favoritter
-          .filter((p) => p.id !== piktogram.id)
-          .map((p, index) => ({ ...p, snippenRaekkefolge: index }))
-        await piktogramRepo.gemFlerePiktogrammer([opdateret, ...resterende])
-        setPiktogrammer((forrige) =>
-          forrige.map((p) => {
-            if (p.id === opdateret.id) return opdateret
-            const match = resterende.find((r) => r.id === p.id)
-            return match ?? p
-          }),
-        )
+        const resterende = favoritter.filter((p) => p.id !== piktogram.id)
+        const rettelser = [
+          { id: piktogram.id, felter: { favorit: 0 as const, snippenRaekkefolge: null } },
+          ...resterende.map((p, index) => ({ id: p.id, felter: { snippenRaekkefolge: index } })),
+        ]
+        const opdaterede = await piktogramRepo.opdaterFlerePiktogramFelter(rettelser)
+        setPiktogrammer((forrige) => forrige.map((p) => opdaterede.find((o) => o.id === p.id) ?? p))
         return { ok: true }
       }
 
@@ -204,20 +206,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return { ok: false, aarsag: 'snippen-fuld' }
       }
 
-      const opdateret: Piktogram = { ...piktogram, favorit: 1, snippenRaekkefolge: favoritter.length }
-      await piktogramRepo.gemPiktogram(opdateret)
-      setPiktogrammer((forrige) => forrige.map((p) => (p.id === opdateret.id ? opdateret : p)))
+      const [opdateret] = await piktogramRepo.opdaterFlerePiktogramFelter([
+        { id: piktogram.id, felter: { favorit: 1, snippenRaekkefolge: favoritter.length } },
+      ])
+      if (opdateret) setPiktogrammer((forrige) => forrige.map((p) => (p.id === opdateret.id ? opdateret : p)))
       return { ok: true }
     },
     [favoritter],
   )
 
   const omorganiserSnippen = useCallback(async (nyeIRaekkefolge: Piktogram[]) => {
-    const opdaterede = nyeIRaekkefolge.map((p, index) => ({ ...p, snippenRaekkefolge: index }))
-    await piktogramRepo.gemFlerePiktogrammer(opdaterede)
-    setPiktogrammer((forrige) =>
-      forrige.map((p) => opdaterede.find((o) => o.id === p.id) ?? p),
-    )
+    const rettelser = nyeIRaekkefolge.map((p, index) => ({ id: p.id, felter: { snippenRaekkefolge: index } }))
+    const opdaterede = await piktogramRepo.opdaterFlerePiktogramFelter(rettelser)
+    setPiktogrammer((forrige) => forrige.map((p) => opdaterede.find((o) => o.id === p.id) ?? p))
   }, [])
 
   const opretFastValg = useCallback(
@@ -266,6 +267,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setValgRegistreringer((forrige) => [ny, ...forrige])
   }, [])
 
+  const markerPiktogramBilledeOdelagt = useCallback(async (id: string) => {
+    await piktogramRepo.ryddOdelagtBilledeLokalt(id)
+    setPiktogrammer((forrige) => forrige.map((p) => (p.id === id ? { ...p, billede: null } : p)))
+  }, [])
+
+  const markerKategoriBilledeOdelagt = useCallback(async (id: string) => {
+    await kategoriRepo.ryddOdelagtBilledeLokalt(id)
+    setKategorier((forrige) => forrige.map((k) => (k.id === id ? { ...k, billede: null } : k)))
+  }, [])
+
   const vaerdi: DataContextVaerdi = {
     klarTilBrug,
     kategorier,
@@ -283,6 +294,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     omorganiserPiktogrammer,
     toggleFavorit,
     omorganiserSnippen,
+    markerPiktogramBilledeOdelagt,
+    markerKategoriBilledeOdelagt,
     fasteValg,
     opretFastValg,
     opdaterFastValg,

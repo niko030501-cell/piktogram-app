@@ -76,7 +76,11 @@ async function medBegraensetSamtidighed<T>(opgaver: (() => Promise<T>)[]): Promi
 async function hentBillede(sti: string): Promise<Blob | null> {
   if (!supabase) return null
   const { data, error } = await supabase.storage.from(BILLED_BUCKET).download(sti)
-  return error ? null : data
+  // Et tomt svar er ikke et brugbart billede (fx en afbrudt upload, der nåede
+  // at oprette filen, men ikke skrive dens indhold) - bedre at prøve igen
+  // ved næste synkronisering end at gemme det som et ødelagt billede.
+  if (error || !data || data.size === 0) return null
+  return data
 }
 
 function erNyereEndLokal(fjernOpdateret: string, lokalOpdateret: number | undefined): boolean {
@@ -93,7 +97,20 @@ async function traekKategorier(): Promise<void> {
 
   for (const raekke of data as KategoriRaekke[]) {
     const lokal = await kategoriRepo.hentKategoriMedId(raekke.id)
-    if (!erNyereEndLokal(raekke.updated_at, lokal?.opdateret)) continue
+
+    if (!erNyereEndLokal(raekke.updated_at, lokal?.opdateret)) {
+      // Selve rækken er ikke ændret - men mangler vi stadig billedet til en
+      // sti, vi allerede kender (fx fordi et tidligere downloadforsøg fejlede,
+      // eller fordi visningen selv opdagede et ødelagt billede og ryddede
+      // det lokalt, se PictogramCard/CategoryTile), så prøv igen alligevel.
+      if (lokal && raekke.billede_path && lokal.billedeStoragePath === raekke.billede_path && !lokal.billede) {
+        billedDownloads.push(async () => {
+          const blob = await hentBillede(raekke.billede_path!)
+          if (blob) await kategoriRepo.patchKategoriHvisUaendret(lokal.id, lokal.opdateret, { billede: blob })
+        })
+      }
+      continue
+    }
 
     const ny: Kategori = {
       id: raekke.id,
@@ -111,7 +128,10 @@ async function traekKategorier(): Promise<void> {
     if (raekke.billede_path && !ny.billede) {
       billedDownloads.push(async () => {
         const blob = await hentBillede(raekke.billede_path!)
-        if (blob) await kategoriRepo.gemKategori({ ...ny, billede: blob }, { fraSky: true })
+        // Patch, ikke overskriv: "ny" er et øjebliksbillede fra starten af
+        // denne synkronisering - er kategorien redigeret lokalt i mellemtiden
+        // (mens downloadet stod på), skal den ændring ikke tabes.
+        if (blob) await kategoriRepo.patchKategoriHvisUaendret(ny.id, ny.opdateret, { billede: blob })
       })
     }
   }
@@ -128,7 +148,19 @@ async function traekPiktogrammer(): Promise<void> {
 
   for (const raekke of data as PiktogramRaekke[]) {
     const lokal = await piktogramRepo.hentPiktogramMedId(raekke.id)
-    if (!erNyereEndLokal(raekke.updated_at, lokal?.opdateret)) continue
+
+    if (!erNyereEndLokal(raekke.updated_at, lokal?.opdateret)) {
+      // Se kommentaren i traekKategorier ovenfor - prøv igen at hente et
+      // billede, vi mangler til en sti vi allerede kender, selvom rækken
+      // ellers ikke er ændret siden sidst.
+      if (lokal && raekke.billede_path && lokal.billedeStoragePath === raekke.billede_path && !lokal.billede) {
+        billedDownloads.push(async () => {
+          const blob = await hentBillede(raekke.billede_path!)
+          if (blob) await piktogramRepo.patchPiktogramHvisUaendret(lokal.id, lokal.opdateret, { billede: blob })
+        })
+      }
+      continue
+    }
 
     const ny: Piktogram = {
       id: raekke.id,
@@ -149,7 +181,10 @@ async function traekPiktogrammer(): Promise<void> {
     if (raekke.billede_path && !ny.billede) {
       billedDownloads.push(async () => {
         const blob = await hentBillede(raekke.billede_path!)
-        if (blob) await piktogramRepo.gemPiktogram({ ...ny, billede: blob }, { fraSky: true })
+        // Patch, ikke overskriv: se kommentaren i traekKategorier ovenfor -
+        // ellers kan et billede, der lige er hentet ned, blive slået ihjel af
+        // fx et samtidigt tryk på "fjern fra Snippen" på en anden skærm.
+        if (blob) await piktogramRepo.patchPiktogramHvisUaendret(ny.id, ny.opdateret, { billede: blob })
       })
     }
   }

@@ -65,12 +65,71 @@ export async function gemFlerePiktogrammer(piktogrammer: Piktogram[], valgfri?: 
   if (!valgfri?.fraSky) varslOmLokalAendring()
 }
 
+/**
+ * Retter kun de angivne felter på et piktogram - ovenpå den nyeste udgave,
+ * der findes i databasen lige nu, ikke ovenpå et øjebliksbillede kalderen
+ * sidder med. Bruges i stedet for gemPiktogram/gemFlerePiktogrammer alle de
+ * steder, hvor vi ellers ville skrive et helt objekt tilbage, der kan være
+ * blevet forældet af fx et billede, der lige er hentet ned i baggrunden -
+ * se toggleFavorit/omorganiserSnippen i DataProvider.tsx.
+ */
+export async function opdaterFlerePiktogramFelter(
+  rettelser: { id: string; felter: Partial<Piktogram> }[],
+): Promise<Piktogram[]> {
+  const db = await getDB()
+  const tx = db.transaction('piktogrammer', 'readwrite')
+  const opdaterede: Piktogram[] = []
+  for (const { id, felter } of rettelser) {
+    const nuvaerende = await tx.store.get(id)
+    if (!nuvaerende) continue
+    const ny: Piktogram = { ...nuvaerende, ...felter, opdateret: Date.now(), synket: 0 }
+    opdaterede.push(ny)
+    await tx.store.put(ny)
+  }
+  await tx.done
+  varslOmLokalAendring()
+  return opdaterede
+}
+
+/**
+ * Retter kun de angivne felter på ét piktogram - men KUN hvis ingen anden
+ * (fx synkroniseringen selv, eller en anden fane) har ændret rækken siden
+ * `forventetOpdateret`. Ellers droppes rettelsen stille - den ændring, der
+ * skete i mellemtiden, er nyere og skal ikke overskrives. Bruges af
+ * src/sync/push.ts og pull.ts, hvor der går tid (netværkskald) mellem at
+ * læse en række og skrive resultatet tilbage.
+ */
+export async function patchPiktogramHvisUaendret(
+  id: string,
+  forventetOpdateret: number,
+  felter: Partial<Piktogram>,
+): Promise<void> {
+  const db = await getDB()
+  const nuvaerende = await db.get('piktogrammer', id)
+  if (!nuvaerende || nuvaerende.opdateret !== forventetOpdateret) return
+  await db.put('piktogrammer', { ...nuvaerende, ...felter })
+}
+
 export async function sletPiktogram(id: string): Promise<void> {
   const db = await getDB()
   const eksisterende = await db.get('piktogrammer', id)
   if (!eksisterende) return
   await db.put('piktogrammer', { ...eksisterende, slettet: Date.now(), opdateret: Date.now(), synket: 0 })
   varslOmLokalAendring()
+}
+
+/**
+ * Rydder et lokalt billede, som browseren ikke kunne vise (fx en afbrudt
+ * download, der efterlod nogle få ødelagte bytes) - uden at markere rækken
+ * som "skal sendes til skyen", for det er jo ikke en rigtig ændring. Næste
+ * synkronisering opdager selv at billedet mangler og henter det igen, se
+ * src/sync/pull.ts.
+ */
+export async function ryddOdelagtBilledeLokalt(id: string): Promise<void> {
+  const db = await getDB()
+  const nuvaerende = await db.get('piktogrammer', id)
+  if (!nuvaerende || !nuvaerende.billede) return
+  await db.put('piktogrammer', { ...nuvaerende, billede: null })
 }
 
 export function nytPiktogramId(): string {

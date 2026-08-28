@@ -74,11 +74,19 @@ function SnipKnap({
   piktogram: Piktogram
   onClick: (e: MouseEvent<HTMLButtonElement>) => void
 }) {
+  const { markerPiktogramBilledeOdelagt } = useData()
   const billedeUrl = useObjectUrl(piktogram.billede)
   return (
     <button type="button" className={styles.knap} onClick={onClick}>
       <span className={styles.billedRamme}>
-        {billedeUrl && <img src={billedeUrl} alt="" className={styles.billede} />}
+        {billedeUrl && (
+          <img
+            src={billedeUrl}
+            alt=""
+            className={styles.billede}
+            onError={() => void markerPiktogramBilledeOdelagt(piktogram.id)}
+          />
+        )}
       </span>
       <span className={styles.navn}>{piktogram.navn}</span>
     </button>

@@ -7,6 +7,7 @@
 import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes } from 'react'
 import type { Kategori } from '../../db/schema'
+import { useData } from '../../state/DataProvider'
 import { useObjectUrl } from '../../state/useObjectUrl'
 import styles from './CategoryTile.module.css'
 
@@ -18,6 +19,7 @@ export const CategoryTile = forwardRef<HTMLButtonElement, Props>(function Catego
   { kategori, className, style, ...resten },
   ref,
 ) {
+  const { markerKategoriBilledeOdelagt } = useData()
   const billedeUrl = useObjectUrl(kategori.billede)
 
   return (
@@ -28,7 +30,15 @@ export const CategoryTile = forwardRef<HTMLButtonElement, Props>(function Catego
       style={{ background: kategori.farve, ...style }}
       {...resten}
     >
-      {billedeUrl && <img src={billedeUrl} alt="" className={styles.billede} draggable={false} />}
+      {billedeUrl && (
+        <img
+          src={billedeUrl}
+          alt=""
+          className={styles.billede}
+          draggable={false}
+          onError={() => void markerKategoriBilledeOdelagt(kategori.id)}
+        />
+      )}
       <span className={styles.navn}>{kategori.navn}</span>
     </button>
   )

@@ -60,6 +60,33 @@ export async function sletKategori(id: string): Promise<void> {
   varslOmLokalAendring()
 }
 
+/**
+ * Retter kun de angivne felter på én kategori - men KUN hvis ingen anden
+ * (fx synkroniseringen selv) har ændret rækken siden `forventetOpdateret`.
+ * Se patchPiktogramHvisUaendret i pictogramsRepo.ts for den fulde forklaring.
+ */
+export async function patchKategoriHvisUaendret(
+  id: string,
+  forventetOpdateret: number,
+  felter: Partial<Kategori>,
+): Promise<void> {
+  const db = await getDB()
+  const nuvaerende = await db.get('kategorier', id)
+  if (!nuvaerende || nuvaerende.opdateret !== forventetOpdateret) return
+  await db.put('kategorier', { ...nuvaerende, ...felter })
+}
+
+/**
+ * Rydder et lokalt kategori-billede, som browseren ikke kunne vise. Se
+ * ryddOdelagtBilledeLokalt i pictogramsRepo.ts for den fulde forklaring.
+ */
+export async function ryddOdelagtBilledeLokalt(id: string): Promise<void> {
+  const db = await getDB()
+  const nuvaerende = await db.get('kategorier', id)
+  if (!nuvaerende || !nuvaerende.billede) return
+  await db.put('kategorier', { ...nuvaerende, billede: null })
+}
+
 export function nyKategoriId(): string {
   return crypto.randomUUID()
 }

@@ -54,13 +54,29 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   // Uden sky-forbindelse er der intet at vente på - så er "første synkronisering" allerede overstået.
   const [foersteSynkroniseringKlar, setFoersteSynkroniseringKlar] = useState(!harSkyForbindelse)
   const forsinkelseRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Der er mange, uafhængige grunde til at starte en synkronisering (se
+  // toppen af filen) - uden denne lås kunne flere køre oven i hinanden og
+  // gå i vejen for hinandens push/pull, fx overskrive et billede, der lige
+  // var hentet ned, med et forældet øjebliksbillede. Kommer der et nyt
+  // ønske om at synkronisere, mens én allerede kører, sætter vi bare et
+  // "kør igen"-flag i stedet for at starte en ny, overlappende omgang.
+  const koererRef = useRef(false)
+  const koerIgenRef = useRef(false)
 
   const koerFuldSynkronisering = useCallback(async () => {
     if (!harSkyForbindelse || !loggetInd) return
+    if (koererRef.current) {
+      koerIgenRef.current = true
+      return
+    }
+    koererRef.current = true
     setStatus('synkroniserer')
     try {
-      await skubTilSky()
-      await traekFraSky()
+      do {
+        koerIgenRef.current = false
+        await skubTilSky()
+        await traekFraSky()
+      } while (koerIgenRef.current)
       await genindlaesFraDatabase()
       setSidstSynkroniseret(Date.now())
       setStatus('inaktiv')
@@ -68,6 +84,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       // Forbliver med synket: 0 lokalt - prøves automatisk igen ved næste lejlighed.
       setStatus('fejl')
     } finally {
+      koererRef.current = false
       // Sættes uanset udfald - ellers ville en enhed uden forbindelse ved
       // allerførste login aldrig komme videre.
       setFoersteSynkroniseringKlar(true)

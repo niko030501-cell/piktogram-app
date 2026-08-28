@@ -54,10 +54,14 @@ async function skubKategorier(): Promise<void> {
 
     if (error || !data) continue // forbliver synket: 0, prøves igen senere
 
-    await kategoriRepo.gemKategori(
-      { ...k, billedeStoragePath: sti, opdateret: new Date(data.updated_at).getTime(), synket: 1 },
-      { fraSky: true },
-    )
+    // Patch, ikke overskriv: hvis kategorien er blevet ændret lokalt igen,
+    // imens vi ventede på netværket, skal den nyere ændring stå ved magt -
+    // den bliver samlet op og sendt i den næste synkronisering i stedet.
+    await kategoriRepo.patchKategoriHvisUaendret(k.id, k.opdateret, {
+      billedeStoragePath: sti,
+      opdateret: new Date(data.updated_at).getTime(),
+      synket: 1,
+    })
   }
 }
 
@@ -90,10 +94,12 @@ async function skubPiktogrammer(): Promise<void> {
 
     if (error || !data) continue
 
-    await piktogramRepo.gemPiktogram(
-      { ...p, billedeStoragePath: sti, opdateret: new Date(data.updated_at).getTime(), synket: 1 },
-      { fraSky: true },
-    )
+    // Patch, ikke overskriv: se kommentaren i skubKategorier ovenfor.
+    await piktogramRepo.patchPiktogramHvisUaendret(p.id, p.opdateret, {
+      billedeStoragePath: sti,
+      opdateret: new Date(data.updated_at).getTime(),
+      synket: 1,
+    })
   }
 }
 
