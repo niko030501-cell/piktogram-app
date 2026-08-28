@@ -122,7 +122,17 @@ export function CategoryScreen({ kategoriId, navigerTil }: Props) {
         {piktogrammer.length === 0 ? (
           <p className={styles.tom}>Ingen piktogrammer i denne kategori endnu.</p>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={haandterDragEnd}>
+          // En kategori kan indeholde mange piktogrammer, så i modsætning til
+          // HomeScreen/SnippenEditor er der her reelt brug for at kunne
+          // scrolle, mens man trækker. Men dnd-kits standard-afstand (20% af
+          // skærmen fra kanten) udløste det alt for let på en telefon - sat
+          // langt tættere på selve kanten i stedet.
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={haandterDragEnd}
+            autoScroll={{ threshold: { x: 0.2, y: 0.08 } }}
+          >
             <SortableContext items={piktogrammer.map((p) => p.id)} strategy={rectSortingStrategy}>
               <div className={styles.grid}>
                 {piktogrammer.map((p, index) => (

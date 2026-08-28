@@ -70,7 +70,15 @@ export function SnippenEditor({ onLuk }: Props) {
           {favoritter.length === 0 ? (
             <p className={styles.tom}>Ingen favoritter endnu - tilføj fra listerne herunder.</p>
           ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={haandterDragEnd}>
+            /* autoScroll={false}: se samme rettelse i HomeScreen.tsx - højst
+               6 favoritter fylder aldrig mere end skærmen, så autoscroll
+               gør kun mere skade end gavn her. */
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={haandterDragEnd}
+              autoScroll={false}
+            >
               <SortableContext items={favoritter.map((p) => p.id)} strategy={rectSortingStrategy}>
                 <div className={styles.grid}>
                   {favoritter.map((p) => (

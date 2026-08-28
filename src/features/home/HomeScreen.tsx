@@ -88,7 +88,16 @@ export function HomeScreen({ navigerTil }: Props) {
           )}
         </div>
 
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={haandterDragEnd}>
+        {/* autoScroll={false}: kategorierne fylder normalt hele skærmen, så
+            dnd-kits indbyggede autoscroll (som starter, når man trækker
+            bare tæt på kanten) fik ellers siden til at rykke sig af sig
+            selv, mens man forsøgte at flytte en flise op eller ned. */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={haandterDragEnd}
+          autoScroll={false}
+        >
           <SortableContext items={kategorier.map((k) => k.id)} strategy={rectSortingStrategy}>
             <div className={styles.grid}>
               {kategorier.map((k) => (
